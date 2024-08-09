@@ -115,31 +115,25 @@ app.post('/register', (req, res) => {
     });
 });
 
-// Set location and slots endpoint
+// Endpoint to save parking slots information
 app.post('/set-location', (req, res) => {
-    const { latitude, longitude, slots, startTime, endTime } = req.body;
+    const { latitude, longitude, slots, date, startTime, endTime } = req.body;
 
-    if (!latitude || !longitude || !slots || !startTime || !endTime) {
+    if (!latitude || !longitude || !slots || !date || !startTime || !endTime) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Validate start and end times
-    if (new Date(startTime) >= new Date(endTime)) {
-        return res.status(400).json({ message: 'Start time must be before end time' });
+    // Validate the date and time format
+    if (isNaN(Date.parse(date)) || !/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) {
+        return res.status(400).json({ message: 'Invalid date or time format' });
     }
 
-    const newSlot = {
-        latitude,
-        longitude,
-        slots,
-        startTime,
-        endTime
-    };
+    const newSlot = { latitude, longitude, slots, date, startTime, endTime };
 
     readData(slotsFilePath, (slotsData) => {
         slotsData.push(newSlot);
         writeData(slotsFilePath, slotsData, () => {
-            res.json({ message: 'Location and slots saved successfully' });
+            res.json({ message: 'Location and slots saved successfully!' });
         });
     });
 });
@@ -147,4 +141,5 @@ app.post('/set-location', (req, res) => {
 // Start the server
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
+    ensureDataFilesExist(); // Ensure users.json and slots.json files exist on startup
 });
