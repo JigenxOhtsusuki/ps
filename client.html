@@ -38,8 +38,8 @@
             background-color: #0056b3;
         }
 
-        .btn-show-location {
-            background-color: #28a745;
+        .btn-search-location {
+            background-color: #17a2b8;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -48,8 +48,24 @@
             margin-top: 10px;
         }
 
-        .btn-show-location:hover {
-            background-color: #218838;
+        .btn-search-location:hover {
+            background-color: #138496;
+        }
+
+        .input-box {
+            margin-bottom: 10px;
+        }
+
+        .input-box input[type="text"] {
+            width: calc(100% - 120px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .input-box input[type="submit"] {
+            width: 100px;
         }
     </style>
 </head>
@@ -64,9 +80,12 @@
             <p>Choose a location on the map below to offer free parking slots.</p>
 
             <div id="map"></div>
-            <button class="btn-show-location" onclick="showCurrentLocation()">Show My Location</button>
 
             <form id="locationForm">
+                <div class="input-box">
+                    <input type="text" id="searchBox" placeholder="Enter place name (e.g., Chandanagar, Hyderabad, India)">
+                    <input type="button" class="btn-search-location" value="Search" onclick="searchLocation()">
+                </div>
                 <input type="hidden" id="latitude" name="latitude">
                 <input type="hidden" id="longitude" name="longitude">
 
@@ -83,68 +102,52 @@
         let marker;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Default fallback location
-            const fallbackLocation = [40.712776, -74.005974]; // New York City coordinates
+            const defaultLocation = [40.712776, -74.005974]; // Fallback to New York City coordinates
 
             // Initialize the map
-            map = L.map('map');
+            map = L.map('map').setView(defaultLocation, 13);
 
-            // Function to initialize the map with a given location
-            function initializeMap(lat, lng) {
-                map.setView([lat, lng], 13);
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
 
-                // Add OpenStreetMap tile layer
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
-
-                // Add a marker at the initial location
-                if (marker) {
-                    marker.remove(); // Remove previous marker
-                }
-                marker = L.marker([lat, lng]).addTo(map);
-
-                // Store the coordinates in hidden inputs
-                document.getElementById('latitude').value = lat;
-                document.getElementById('longitude').value = lng;
-            }
-
-            // Try to get the user's current location
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    initializeMap(lat, lng);
-                }, function() {
-                    initializeMap(...fallbackLocation);
-                });
-            } else {
-                initializeMap(...fallbackLocation);
-            }
+            // Set a marker
+            marker = L.marker(defaultLocation).addTo(map);
         });
 
-        function showCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-
-                    // Center the map on the user's location and add a marker
-                    map.setView([lat, lng], 13);
-                    if (marker) {
-                        marker.remove(); // Remove previous marker
-                    }
-                    marker = L.marker([lat, lng]).addTo(map);
-
-                    // Store the coordinates in hidden inputs
-                    document.getElementById('latitude').value = lat;
-                    document.getElementById('longitude').value = lng;
-                }, function() {
-                    alert('Unable to retrieve your location.');
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
+        function searchLocation() {
+            const placeName = document.getElementById('searchBox').value;
+            if (!placeName) {
+                alert('Please enter a place name.');
+                return;
             }
+
+            // Fetch coordinates from OpenCage Geocoding API
+            const apiKey = 'YOUR_OPENCAGE_API_KEY'; // Replace with your OpenCage API key
+            fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(placeName)}&key=${apiKey}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results.length > 0) {
+                        const location = data.results[0].geometry;
+                        const lat = location.lat;
+                        const lng = location.lng;
+
+                        // Center the map on the found location and add a marker
+                        map.setView([lat, lng], 13);
+                        if (marker) {
+                            marker.remove(); // Remove previous marker
+                        }
+                        marker = L.marker([lat, lng]).addTo(map);
+
+                        // Store the coordinates in hidden inputs
+                        document.getElementById('latitude').value = lat;
+                        document.getElementById('longitude').value = lng;
+                    } else {
+                        alert('Location not found.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         // Submit the location data
