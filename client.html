@@ -83,30 +83,44 @@
         let marker;
 
         document.addEventListener('DOMContentLoaded', () => {
-            const defaultLocation = [40.712776, -74.005974]; // New York City coordinates
+            // Default fallback location
+            const fallbackLocation = [40.712776, -74.005974]; // New York City coordinates
 
             // Initialize the map
-            map = L.map('map').setView(defaultLocation, 13);
+            map = L.map('map');
 
-            // Add OpenStreetMap tile layer
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            // Function to initialize the map with a given location
+            function initializeMap(lat, lng) {
+                map.setView([lat, lng], 13);
 
-            // Add a marker when the map is clicked
-            map.on('click', function(event) {
+                // Add OpenStreetMap tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                // Add a marker at the initial location
                 if (marker) {
                     marker.remove(); // Remove previous marker
                 }
-                marker = L.marker(event.latlng).addTo(map);
+                marker = L.marker([lat, lng]).addTo(map);
 
                 // Store the coordinates in hidden inputs
-                document.getElementById('latitude').value = event.latlng.lat;
-                document.getElementById('longitude').value = event.latlng.lng;
-            });
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lng;
+            }
 
-            // Set the initial marker
-            marker = L.marker(defaultLocation).addTo(map);
+            // Try to get the user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    initializeMap(lat, lng);
+                }, function() {
+                    initializeMap(...fallbackLocation);
+                });
+            } else {
+                initializeMap(...fallbackLocation);
+            }
         });
 
         function showCurrentLocation() {
