@@ -55,14 +55,18 @@
         .input-box {
             margin-bottom: 10px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+        }
+
+        .input-box label {
+            margin-bottom: 5px;
+            font-weight: bold;
         }
 
         .input-box input[type="text"], 
         .input-box input[type="number"], 
         .input-box input[type="date"], 
         .input-box input[type="time"] {
-            flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -71,7 +75,7 @@
 
         .input-box input[type="button"], 
         .input-box input[type="submit"] {
-            margin-left: 10px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -89,17 +93,24 @@
 
             <form id="locationForm">
                 <div class="input-box">
+                    <label for="searchBox">Location Name:</label>
                     <input type="text" id="searchBox" placeholder="Enter place name (e.g., Chandanagar, Hyderabad, India)">
                     <input type="button" class="btn-search-location" value="Search" onclick="searchLocation()">
                 </div>
                 <div class="input-box">
+                    <label for="slots">Number of Slots:</label>
                     <input type="number" id="slots" placeholder="Enter number of slots" min="1" required>
                 </div>
                 <div class="input-box">
+                    <label for="date">Date:</label>
                     <input type="date" id="date" required>
                 </div>
                 <div class="input-box">
+                    <label for="startTime">Start Time:</label>
                     <input type="time" id="startTime" required>
+                </div>
+                <div class="input-box">
+                    <label for="endTime">End Time:</label>
                     <input type="time" id="endTime" required>
                 </div>
                 <input type="hidden" id="latitude" name="latitude">
