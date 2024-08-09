@@ -58,7 +58,9 @@
             align-items: center;
         }
 
-        .input-box input[type="text"] {
+        .input-box input[type="text"], 
+        .input-box input[type="number"],
+        .input-box input[type="time"] {
             flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
@@ -90,6 +92,12 @@
                 </div>
                 <div class="input-box">
                     <input type="number" id="slots" placeholder="Enter number of slots" min="1" required>
+                </div>
+                <div class="input-box">
+                    <input type="time" id="startTime" placeholder="Start Time" required>
+                </div>
+                <div class="input-box">
+                    <input type="time" id="endTime" placeholder="End Time" required>
                 </div>
                 <input type="hidden" id="latitude" name="latitude">
                 <input type="hidden" id="longitude" name="longitude">
@@ -173,9 +181,11 @@
             const latitude = document.querySelector('#latitude').value;
             const longitude = document.querySelector('#longitude').value;
             const slots = document.querySelector('#slots').value;
+            const startTime = document.querySelector('#startTime').value;
+            const endTime = document.querySelector('#endTime').value;
 
-            if (!latitude || !longitude || !slots) {
-                alert('Please select a location on the map and enter the number of slots.');
+            if (!latitude || !longitude || !slots || !startTime || !endTime) {
+                alert('Please select a location on the map and fill in all the fields.');
                 return;
             }
 
@@ -183,7 +193,7 @@
             fetch('http://localhost:3000/set-location', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ latitude, longitude, slots })
+                body: JSON.stringify({ latitude, longitude, slots, startTime, endTime })
             })
             .then(response => response.json())
             .then(data => {
