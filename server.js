@@ -10,16 +10,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const usersFilePath = path.join(__dirname, 'users.json');
 const slotsFilePath = path.join(__dirname, 'slots.json');
 
-// Helper function to ensure the data file exists
-function ensureFileExists(filePath) {
-    if (!fs.existsSync(filePath)) {
-        fs.writeFileSync(filePath, '[]', 'utf8'); // Initialize with an empty array
+// Helper function to ensure the data files exist
+function ensureDataFilesExist() {
+    if (!fs.existsSync(usersFilePath)) {
+        fs.writeFileSync(usersFilePath, '[]', 'utf8'); // Initialize with an empty array
+    }
+    if (!fs.existsSync(slotsFilePath)) {
+        fs.writeFileSync(slotsFilePath, '[]', 'utf8'); // Initialize with an empty array
     }
 }
-
-// Ensure the data files exist on startup
-ensureFileExists(usersFilePath);
-ensureFileExists(slotsFilePath);
 
 // Helper function to read JSON data
 function readData(filePath, callback) {
@@ -50,22 +49,8 @@ function writeData(filePath, data, callback) {
     });
 }
 
-// Endpoint to handle saving location and slots
-app.post('/set-location', (req, res) => {
-    const { latitude, longitude, slots } = req.body;
-    if (!latitude || !longitude || !slots) {
-        return res.status(400).json({ message: 'Latitude, longitude, and slots are required' });
-    }
-
-    readData(slotsFilePath, (slotsData) => {
-        const newEntry = { latitude, longitude, slots };
-        slotsData.push(newEntry);
-
-        writeData(slotsFilePath, slotsData, () => {
-            res.json({ message: 'Location and slots set successfully!' });
-        });
-    });
-});
+// Ensure the data files exist on startup
+ensureDataFilesExist();
 
 // Set role endpoint
 app.post('/set-role', (req, res) => {
@@ -126,6 +111,35 @@ app.post('/register', (req, res) => {
 
         writeData(usersFilePath, users, () => {
             res.json({ message: 'Registration successful' });
+        });
+    });
+});
+
+// Set location and slots endpoint
+app.post('/set-location', (req, res) => {
+    const { latitude, longitude, slots, startTime, endTime } = req.body;
+
+    if (!latitude || !longitude || !slots || !startTime || !endTime) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Validate start and end times
+    if (new Date(startTime) >= new Date(endTime)) {
+        return res.status(400).json({ message: 'Start time must be before end time' });
+    }
+
+    const newSlot = {
+        latitude,
+        longitude,
+        slots,
+        startTime,
+        endTime
+    };
+
+    readData(slotsFilePath, (slotsData) => {
+        slotsData.push(newSlot);
+        writeData(slotsFilePath, slotsData, () => {
+            res.json({ message: 'Location and slots saved successfully' });
         });
     });
 });
