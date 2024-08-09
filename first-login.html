@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Role</title>
+    <link rel='stylesheet' href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Poppins&amp;display=swap'>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <div class="header-container">
+        <h1 class="header">Parking Solutions</h1>
+    </div>
+    <div class="container">
+        <div class="role-selection">
+            <h2>Select Your Role</h2>
+            <p>Choose your role below:</p>
+            <form id="roleForm">
+                <button type="button" id="clientButton" class="btn-secondary">Client</button>
+                <button type="button" id="userButton" class="btn-secondary">User</button>
+                <input type="hidden" id="selectedRole" name="role" value="">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('clientButton').addEventListener('click', function() {
+            window.location.href = 'client.html';
+        });
+
+        document.getElementById('userButton').addEventListener('click', function() {
+            window.location.href = 'user.html';
+        });
+    </script>
+</body>
+</html>

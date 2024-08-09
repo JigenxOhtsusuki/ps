@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard</title>
+    <link rel='stylesheet' href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Poppins&amp;display=swap'>
+    <link rel="stylesheet" href="styles/styles.css">
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Client Dashboard -->
+    <div class="header-container">
+        <h1 class="header">Parking Solutions</h1>
+    </div>
+    <div class="container">
+        <div class="form-container">
+            <h2>Select Location and Offer Parking Slots</h2>
+            <p>Choose a location on the map below to offer free parking slots.</p>
+
+            <div id="map"></div>
+
+            <form id="locationForm">
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+
+                <div class="input_box">
+                    <input type="submit" class="input-submit" value="Confirm Location">
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function initMap() {
+            // Initialize the map centered on a default location
+            const defaultLocation = { lat: 40.712776, lng: -74.005974 }; // New York City coordinates
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 13,
+                center: defaultLocation
+            });
+
+            let marker;
+
+            // Add a marker when the map is clicked
+            map.addListener('click', function(event) {
+                if (marker) {
+                    marker.setMap(null); // Remove previous marker
+                }
+                marker = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map
+                });
+
+                // Store the coordinates in hidden inputs
+                document.getElementById('latitude').value = event.latLng.lat();
+                document.getElementById('longitude').value = event.latLng.lng();
+            });
+        }
+
+        // Submit the location data
+        document.querySelector('#locationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const latitude = document.querySelector('#latitude').value;
+            const longitude = document.querySelector('#longitude').value;
+
+            if (!latitude || !longitude) {
+                alert('Please select a location on the map.');
+                return;
+            }
+
+            // Send the location data to the server (this would need to be implemented on the backend)
+            fetch('http://localhost:3000/set-location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ latitude, longitude })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Location set successfully!');
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+    <!-- Load the Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
+</body>
+</html>
