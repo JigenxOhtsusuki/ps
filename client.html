@@ -58,9 +58,10 @@
             align-items: center;
         }
 
-        .input-box input[type="text"],
-        .input-box input[type="number"],
-        .input-box input[type="datetime-local"] {
+        .input-box input[type="text"], 
+        .input-box input[type="number"], 
+        .input-box input[type="date"], 
+        .input-box input[type="time"] {
             flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
@@ -68,7 +69,8 @@
             box-sizing: border-box;
         }
 
-        .input-box input[type="button"] {
+        .input-box input[type="button"], 
+        .input-box input[type="submit"] {
             margin-left: 10px;
         }
     </style>
@@ -94,12 +96,11 @@
                     <input type="number" id="slots" placeholder="Enter number of slots" min="1" required>
                 </div>
                 <div class="input-box">
-                    <label for="startDate">Start Date and Time:</label>
-                    <input type="datetime-local" id="startDate" required>
+                    <input type="date" id="date" required>
                 </div>
                 <div class="input-box">
-                    <label for="endDate">End Date and Time:</label>
-                    <input type="datetime-local" id="endDate" required>
+                    <input type="time" id="startTime" required>
+                    <input type="time" id="endTime" required>
                 </div>
                 <input type="hidden" id="latitude" name="latitude">
                 <input type="hidden" id="longitude" name="longitude">
@@ -171,23 +172,24 @@
             const latitude = document.querySelector('#latitude').value;
             const longitude = document.querySelector('#longitude').value;
             const slots = document.querySelector('#slots').value;
-            const startDate = document.querySelector('#startDate').value;
-            const endDate = document.querySelector('#endDate').value;
+            const date = document.querySelector('#date').value;
+            const startTime = document.querySelector('#startTime').value;
+            const endTime = document.querySelector('#endTime').value;
 
-            if (!latitude || !longitude || !slots || !startDate || !endDate) {
-                alert('Please fill out all fields.');
+            if (!latitude || !longitude || !slots || !date || !startTime || !endTime) {
+                alert('Please fill all fields.');
                 return;
             }
 
-            // Send the location, slots, and timing data to the server
+            // Send the location and slots data to the server
             fetch('http://localhost:3000/set-location', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ latitude, longitude, slots, startDate, endDate })
+                body: JSON.stringify({ latitude, longitude, slots, date, startTime, endTime })
             })
             .then(response => response.json())
             .then(data => {
-                alert('Location and slots saved successfully!');
+                alert('Location and slots set successfully!');
             })
             .catch(error => console.error('Error:', error));
         });
