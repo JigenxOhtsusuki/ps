@@ -37,6 +37,20 @@
         .input-submit:hover {
             background-color: #0056b3;
         }
+
+        .btn-show-location {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-show-location:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +64,7 @@
             <p>Choose a location on the map below to offer free parking slots.</p>
 
             <div id="map"></div>
+            <button class="btn-show-location" onclick="showCurrentLocation()">Show My Location</button>
 
             <form id="locationForm">
                 <input type="hidden" id="latitude" name="latitude">
@@ -64,18 +79,19 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
+        let map;
+        let marker;
+
         document.addEventListener('DOMContentLoaded', () => {
             const defaultLocation = [40.712776, -74.005974]; // New York City coordinates
 
             // Initialize the map
-            const map = L.map('map').setView(defaultLocation, 13);
+            map = L.map('map').setView(defaultLocation, 13);
 
             // Add OpenStreetMap tile layer
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
-
-            let marker;
 
             // Add a marker when the map is clicked
             map.on('click', function(event) {
@@ -92,6 +108,30 @@
             // Set the initial marker
             marker = L.marker(defaultLocation).addTo(map);
         });
+
+        function showCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Center the map on the user's location and add a marker
+                    map.setView([lat, lng], 13);
+                    if (marker) {
+                        marker.remove(); // Remove previous marker
+                    }
+                    marker = L.marker([lat, lng]).addTo(map);
+
+                    // Store the coordinates in hidden inputs
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lng;
+                }, function() {
+                    alert('Unable to retrieve your location.');
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
 
         // Submit the location data
         document.querySelector('#locationForm').addEventListener('submit', function(event) {
