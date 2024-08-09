@@ -7,6 +7,7 @@
     <link rel='stylesheet' href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
     <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Poppins&amp;display=swap'>
     <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
         #map {
             height: 400px;
@@ -22,6 +23,19 @@
             background-color: #fff;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-submit {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .input-submit:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -48,32 +62,36 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        function initMap() {
-            // Initialize the map centered on a default location
-            const defaultLocation = { lat: 40.712776, lng: -74.005974 }; // New York City coordinates
-            const map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 13,
-                center: defaultLocation
-            });
+        document.addEventListener('DOMContentLoaded', () => {
+            const defaultLocation = [40.712776, -74.005974]; // New York City coordinates
+
+            // Initialize the map
+            const map = L.map('map').setView(defaultLocation, 13);
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
 
             let marker;
 
             // Add a marker when the map is clicked
-            map.addListener('click', function(event) {
+            map.on('click', function(event) {
                 if (marker) {
-                    marker.setMap(null); // Remove previous marker
+                    marker.remove(); // Remove previous marker
                 }
-                marker = new google.maps.Marker({
-                    position: event.latLng,
-                    map: map
-                });
+                marker = L.marker(event.latlng).addTo(map);
 
                 // Store the coordinates in hidden inputs
-                document.getElementById('latitude').value = event.latLng.lat();
-                document.getElementById('longitude').value = event.latLng.lng();
+                document.getElementById('latitude').value = event.latlng.lat;
+                document.getElementById('longitude').value = event.latlng.lng;
             });
-        }
+
+            // Set the initial marker
+            marker = L.marker(defaultLocation).addTo(map);
+        });
 
         // Submit the location data
         document.querySelector('#locationForm').addEventListener('submit', function(event) {
@@ -100,7 +118,5 @@
             .catch(error => console.error('Error:', error));
         });
     </script>
-    <!-- Load the Google Maps API -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>
