@@ -54,18 +54,20 @@
 
         .input-box {
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
         }
 
         .input-box input[type="text"] {
-            width: calc(100% - 120px);
+            flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             box-sizing: border-box;
         }
 
-        .input-box input[type="submit"] {
-            width: 100px;
+        .input-box input[type="button"] {
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -123,15 +125,14 @@
                 return;
             }
 
-            // Fetch coordinates from OpenCage Geocoding API
-            const apiKey = 'YOUR_OPENCAGE_API_KEY'; // Replace with your OpenCage API key
-            fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(placeName)}&key=${apiKey}`)
+            // Fetch coordinates from Nominatim
+            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&format=json&addressdetails=1`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.results.length > 0) {
-                        const location = data.results[0].geometry;
+                    if (data.length > 0) {
+                        const location = data[0];
                         const lat = location.lat;
-                        const lng = location.lng;
+                        const lng = location.lon;
 
                         // Center the map on the found location and add a marker
                         map.setView([lat, lng], 13);
@@ -150,7 +151,7 @@
                 .catch(error => console.error('Error:', error));
         }
 
-        // Submit the location data
+        // Handle form submission
         document.querySelector('#locationForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
