@@ -7,18 +7,23 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const dataFilePath = path.join(__dirname, 'users.json');
+const usersFilePath = path.join(__dirname, 'users.json');
+const slotsFilePath = path.join(__dirname, 'slots.json');
 
 // Helper function to ensure the data file exists
-function ensureDataFileExists() {
-    if (!fs.existsSync(dataFilePath)) {
-        fs.writeFileSync(dataFilePath, '[]', 'utf8'); // Initialize with an empty array
+function ensureFileExists(filePath) {
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, '[]', 'utf8'); // Initialize with an empty array
     }
 }
 
+// Ensure the data files exist on startup
+ensureFileExists(usersFilePath);
+ensureFileExists(slotsFilePath);
+
 // Helper function to read JSON data
-function readData(callback) {
-    fs.readFile(dataFilePath, 'utf8', (err, data) => {
+function readData(filePath, callback) {
+    fs.readFile(filePath, 'utf8', (err, data) => {
         if (err && err.code === 'ENOENT') {
             // File does not exist, return empty array
             return callback([]);
@@ -36,14 +41,31 @@ function readData(callback) {
 }
 
 // Helper function to write JSON data
-function writeData(data, callback) {
-    fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), (err) => {
+function writeData(filePath, data, callback) {
+    fs.writeFile(filePath, JSON.stringify(data, null, 2), (err) => {
         if (err) {
             console.error('Error writing to file:', err);
         }
         callback();
     });
 }
+
+// Endpoint to handle saving location and slots
+app.post('/set-location', (req, res) => {
+    const { latitude, longitude, slots } = req.body;
+    if (!latitude || !longitude || !slots) {
+        return res.status(400).json({ message: 'Latitude, longitude, and slots are required' });
+    }
+
+    readData(slotsFilePath, (slotsData) => {
+        const newEntry = { latitude, longitude, slots };
+        slotsData.push(newEntry);
+
+        writeData(slotsFilePath, slotsData, () => {
+            res.json({ message: 'Location and slots set successfully!' });
+        });
+    });
+});
 
 // Set role endpoint
 app.post('/set-role', (req, res) => {
@@ -52,12 +74,12 @@ app.post('/set-role', (req, res) => {
         return res.status(400).json({ message: 'Invalid role' });
     }
 
-    readData((users) => {
+    readData(usersFilePath, (users) => {
         const user = users.find(user => user.username === username);
         if (user) {
             if (!user.role) {
                 user.role = role;
-                writeData(users, () => {
+                writeData(usersFilePath, users, () => {
                     res.json({ message: 'Role set successfully', redirectTo: role === 'client' ? 'client.html' : 'user.html' });
                 });
             } else {
@@ -72,7 +94,7 @@ app.post('/set-role', (req, res) => {
 // Login endpoint
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    readData((users) => {
+    readData(usersFilePath, (users) => {
         const user = users.find(user => user.username === username && user.password === password);
         if (user) {
             if (!user.role) {
@@ -93,7 +115,7 @@ app.post('/register', (req, res) => {
         return res.status(400).json({ message: 'Username and password are required' });
     }
 
-    readData((users) => {
+    readData(usersFilePath, (users) => {
         const existingUser = users.find(user => user.username === username);
         if (existingUser) {
             return res.status(400).json({ message: 'Username already exists' });
@@ -102,7 +124,7 @@ app.post('/register', (req, res) => {
         const newUser = { username, password };
         users.push(newUser);
 
-        writeData(users, () => {
+        writeData(usersFilePath, users, () => {
             res.json({ message: 'Registration successful' });
         });
     });
@@ -111,5 +133,4 @@ app.post('/register', (req, res) => {
 // Start the server
 app.listen(3000, () => {
     console.log('Server running on http://localhost:3000');
-    ensureDataFileExists(); // Ensure users.json file exists on startup
 });
